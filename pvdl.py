@@ -80,6 +80,8 @@ def curl_limit_rate(url, filename, rate_limit, desc):
     """Rate limit in bytes"""
     with DownloadProgressBar(unit='B', unit_scale=True,
                                miniters=1, desc=desc) as pbar:
+        
+        filename = r'{}'.format(filename)
         c = pycurl.Curl()
         c.setopt(c.URL, url)
         c.setopt(c.MAX_RECV_SPEED_LARGE, rate_limit)
@@ -103,7 +105,7 @@ def download_url(url, output_path, limit_rate):
         #   urllib.request.urlretrieve(url, filename=output_path, reporthook=t.update_to)
         curl_limit_rate(url, output_path, limit_rate, desc)
     except (Exception, KeyboardInterrupt) as e:
-        print_err(e)
+        print_err("this, "+ str(e))
         
 def refresh():
     global refresh_token
@@ -153,7 +155,7 @@ def get_chapters(vid_id, limit_rate):
         print_err("Error: Wrong link. No video found.")
         
     title = details["title"]
-    title = re.sub(r"[<>|/\\?*]", "_" ,title);
+    title = re.sub(r"[<>|\/|\\|?*|&|\"|\(\)|;|:|,]+", "_" ,title).strip()
     os.makedirs(title, 0o755, exist_ok=True)
         
     url = 'https://static.packt-cdn.com/products/{}/toc'.format(vid_id)
@@ -166,13 +168,13 @@ def get_chapters(vid_id, limit_rate):
     all_chapters = details['chapters']
     for x,i in enumerate(all_chapters):
         section = i['title']
-        section = re.sub(r"[<>|/\\?*]", "_" , section)
+        section = re.sub(r"[<>|\/|\\|?*|&|\"|\(\)|;|:|,]+", "_" ,section).strip()
         s_path = "{}{}{:02}-{}".format(title, os.sep, x+1, section)
         os.makedirs(s_path, 0o755, exist_ok=True)
         print(bcolors.OKGREEN + "\nChapter {}/{}:".format(x+1, len(all_chapters)), section, "\n" + bcolors.ENDC)
         for y,c in enumerate(i['sections']):
             chapter = c['title']
-            chapter = re.sub(r"[<>|/\\?*]", "_" , chapter)
+            chapter = re.sub(r"[<>|\/|\\|?*|&|\"|\(\)|;|:|,]+", "_" ,chapter).strip()
             c_path = "{}{}{:02}-{}.mp4".format(s_path, os.sep , y+1, chapter)
             video_id = i['id'] + '/' + c['id']
             video_url = get_video_url(vid_id, video_id)
